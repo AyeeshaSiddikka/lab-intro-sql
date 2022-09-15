@@ -41,8 +41,8 @@ FROM staff;
     -- 5.3 Return a list of employee first names only?
 
 SELECT staff_id,
-FROM
-    where first_name ;
+FROM staff
+    where in first_name ;
 
    
     
@@ -54,10 +54,7 @@ use sakila;
  select * from actor where first_name = 'Scarlett';
  
  -- 2.How many films (movies) are available for rent and how many films have been rented?
- select * from film;
- 
- select count(film_id)from film where ;
- 
+SELECT COUNT(title) FROM sakila.film; 
  
 
  -- 3.What are the shortest and longest movie duration? Name the values max_duration and min_duration.
@@ -66,7 +63,8 @@ SELECT MAX(length) as max_duration ,MIN(length) as min_duration from sakila.film
 
 
 -- 4.What's the average movie duration expressed in format (hours, minutes)?
-SELECT avg(length) as avg_movie_duration from sakila.film; 
+-- SELECT avg(length) as avg_movie_duration from sakila.film; 
+SELECT concat(floor((AVG(length))/60),":",round((AVG(length))%60,0)) AS "average_length" FROM sakila.film;
       
 -- 5.How many distinct (different) actors' last names are there?
 
@@ -74,21 +72,30 @@ select count(distinct last_name) from actor;
 
 
 -- 6.Since how many days has the company been operating (check DATEDIFF() function)?
-
-select * from customer;
-select * from rental;
-
+SELECT DATEDIFF(MAX(last_update), MIN(rental_date))
+FROM sakila.rental;
 
 
 -- 8.Add an additional column day_type with values 'weekend' and 'workday' depending on the rental day of the week.
 
-SELECT * ,DAYNAME(return_date) as day_type from rental;
+-- SELECT * ,DAYNAME(return_date) as day_type from rental;
 
-
+SELECT *,
+CASE
+WHEN DAYNAME(rental_date) = 'Monday' then 'Workday'
+WHEN DAYNAME(rental_date) = 'Tuesday' then 'Workday'
+WHEN DAYNAME(rental_date) = 'Wednesday' then 'Workday'
+WHEN DAYNAME(rental_date) = 'Thursday' then 'Workday'
+WHEN DAYNAME(rental_date) = 'Friday' then 'Workday'
+WHEN DAYNAME(rental_date) = 'Saturday' then 'Weekend'
+WHEN DAYNAME(rental_date) = 'Sunday' then 'Weekend'
+ELSE 'No info'
+END AS 'day_type', DAYNAME(rental_date) AS 'weekday'
+FROM sakila.rental;
 -- 9.Get release years.
-select release_year from film;
 
-SELECT DAYNAME(return_date) as day_type from rental;
+SELECT title, release_year as 'release years' FROM sakila.film;
+
 
 
 -- 10.Get all films with ARMAGEDDON in the title.
@@ -100,7 +107,10 @@ select film_id,title from film where title like '%ARMAGEDDON%';
 select film_id,title from film where title like '%APOLLO';
 
 -- 12.Get 10 the longest films.
-
+SELECT title, length FROM sakila.film
+ORDER BY length DESC
+LIMIT 10;
+​
 
 -- 13.How many films include Behind the Scenes content?
 
@@ -151,11 +161,10 @@ group by rating;
 
  -- 7.Which kind of movies (rating) have a mean duration of more than two hours?
  
-  select rating, round(avg(length),2)as Average_length
-from film 
-where length 
-group by rating
-having Average_length  120;
+SELECT rating, AVG(length) FROM sakila.film
+GROUP BY rating
+HAVING AVG(length) > 120
+ORDER BY rating ASC;
 
 
  
@@ -163,7 +172,8 @@ having Average_length  120;
  
  -- In your output, only select the columns title, length, and the rank.
  
- select title,length, 
+SELECT title, length, RANK() OVER (ORDER BY length DESC) length_rank FROM sakila.film
+WHERE length <> ' ' OR length <> '0';
  
  
  
